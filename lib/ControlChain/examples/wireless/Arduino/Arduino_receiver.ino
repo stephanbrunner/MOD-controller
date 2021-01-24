@@ -23,7 +23,7 @@
 ControlChain cc;
 float tmp, prevtmp, val;
 
-void setup() {
+__unused void setup() {
 
   Serial3.begin(9600); 
   

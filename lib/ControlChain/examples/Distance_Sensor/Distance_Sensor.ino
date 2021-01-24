@@ -36,7 +36,7 @@ float PotValue; //value of sensitivity potentiometer
 float distance = 0, tempDistance = 0, smoothDistance = 0, scalledDistance = 0;//distance parameters
 int cmDivisor = 54; //for calculation of the value's
 
-void setup()
+__unused void setup()
 { 
   //start CC, set uri and device name
   cc.begin();

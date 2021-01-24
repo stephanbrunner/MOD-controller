@@ -28,7 +28,7 @@ ControlChain cc;
 LiquidCrystal lcd(7, 5, 9, 10, 11, 12);
 LiquidCrystal lcd2(7, 6, 9, 10, 11, 12);
 
-void setup() {
+__unused void setup() {
   //initialize control chain, this should always happen before initializing other components. 
   cc.begin();
 

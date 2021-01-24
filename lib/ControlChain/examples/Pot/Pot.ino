@@ -23,7 +23,7 @@ ControlChain cc;
 float potValue;
 int ledPin = 13, potPin = A0;
 
-void setup() {
+__unused void setup() {
     // configure led
     pinMode(ledPin, OUTPUT);
     digitalWrite(ledPin, LOW);

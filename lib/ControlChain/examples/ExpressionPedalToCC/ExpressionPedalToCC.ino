@@ -22,7 +22,7 @@
 ControlChain cc;
 float portValues[amountOfPorts];
 
-void setup() {
+__unused void setup() {
     // initialize control chain
     // note that control chain requires the Serial 0 and pin 2, which means
     // these peripherals won't be available to be used in your program

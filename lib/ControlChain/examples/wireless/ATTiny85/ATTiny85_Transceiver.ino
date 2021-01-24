@@ -29,7 +29,7 @@ int val;
 
 SoftwareSerial BTSerial(RxD,TxD);
 
-void setup() {
+__unused void setup() {
   pinMode(RxD, INPUT);
   pinMode(TxD, OUTPUT);
 BTSerial.begin (9600);
