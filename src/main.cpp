@@ -1,6 +1,5 @@
 #include <Arduino.h>
-#include "ControlChain.h"
-#include "control_chain.h"
+#include "MIDIUSB.h"
 
 // enums
 enum SOFTBUTTON_STATUS{
@@ -45,18 +44,40 @@ const uint8_t PIN_BUTTON_LED[NUMBER_OF_BUTTONS] = {PIN_BUTTON_1_LED, PIN_BUTTON_
 const uint8_t NUMBER_OF_POTIS = 4;
 const uint8_t PIN_POTI[NUMBER_OF_POTIS] = {PIN_POTI_0, PIN_POTI_1, PIN_POTI_2, PIN_POTI_3};
 
-// instances
-ControlChain cc;
-
 // vars
 float value_softbutton[NUMBER_OF_BUTTONS];
 uint8_t softbutton_status[NUMBER_OF_BUTTONS];
 uint32_t softbutton_fade_timestamp[NUMBER_OF_BUTTONS];
 float value_potis[NUMBER_OF_POTIS];
 
+void noteOn(uint8_t channel, uint8_t pitch, uint8_t velocity) {
+    midiEventPacket_t noteOn = {0x09, (uint8_t)(0x90 | channel), pitch, velocity};
+    MidiUSB.sendMIDI(noteOn);
+}
+
+void noteOff(uint8_t channel, uint8_t pitch, uint8_t velocity) {
+    midiEventPacket_t noteOff = {0x08, (uint8_t)(0x80 | channel), pitch, velocity};
+    MidiUSB.sendMIDI(noteOff);
+}
+
+void controlChange(uint8_t channel, uint8_t control, uint8_t value) {
+    midiEventPacket_t event = {0x0B, (uint8_t)(0xB0 | channel), control, value};
+    MidiUSB.sendMIDI(event);
+}
+
 #pragma clang diagnostic push
 #pragma ide diagnostic ignored "OCUnusedGlobalDeclarationInspection"
 void loop() {
+//    noteOn(0, 1, 64);
+    controlChange(1, 1, 100);
+    MidiUSB.flush();
+    delay(1000);
+//    noteOff(0, 1, 64);
+    controlChange(1, 1, 50);
+    MidiUSB.flush();
+    delay(1000);
+    return;
+
     // set softbutton states
     for (int i = 0; i < NUMBER_OF_BUTTONS; i++) {
         if (softbutton_status[i] == OFF){
@@ -68,6 +89,7 @@ void loop() {
             if (digitalRead(PIN_BUTTON[i]) == true) {
                 // button released
                 softbutton_status[i] = ON;
+                noteOn(0, i, 64);
             }
         } else if (softbutton_status[i] == ON) {
             if (digitalRead(PIN_BUTTON[i]) == false) {
@@ -78,6 +100,7 @@ void loop() {
             if (digitalRead(PIN_BUTTON[i]) == true) {
                 // button released
                 softbutton_status[i] = OFF;
+                noteOff(0, i, 64);
             }
         }
     }
@@ -111,62 +134,25 @@ void loop() {
         value_potis[i] = (float) analogRead(PIN_POTI[i]);
     }
 
-    cc.run();
+    // TODO update midi
 }
 
 void setup() {
+    Serial.begin(115200);
+
     // pinmode
     for (unsigned char i : PIN_BUTTON) {
         pinMode(i, INPUT_PULLUP);
     }
 
-    // initialize control chain
-    // note that control chain requires the Serial 0 and pin 2, which means
-    // these peripherals won't be available to be used in your program
-    cc.begin();
-
-    // define device name (1st parameter) and its URI (2nd parameter)
-    // the URI must be an unique identifier for your device. A good practice
-    // is to use a URL pointing to your project's code or documentation
-    const char *uri = "https://github.com/stephanbrunner/MOD-controller";
-    cc_device_t *device = cc.newDevice("MOD-controller", uri);
-
     // configure softbutton actuator
-    cc_actuator_config_t softbutton_actuator_config[NUMBER_OF_BUTTONS];
     for (int i = 0; i < NUMBER_OF_BUTTONS; i++) {
-        String name = "softbutton ";
-        name.concat(i);
-        softbutton_actuator_config[i].type = CC_ACTUATOR_CONTINUOUS;
-        softbutton_actuator_config[i].name = name.c_str();
-        softbutton_actuator_config[i].value = &value_softbutton[i];
-        softbutton_actuator_config[i].min = SOFTBUTTON_MIN_VALUE;
-        softbutton_actuator_config[i].max = SOFTBUTTON_MAX_VALUE;
-        softbutton_actuator_config[i].supported_modes = CC_MODE_REAL | CC_MODE_INTEGER;
-        softbutton_actuator_config[i].max_assignments = 1;
-
-        // create and add actuator to device
-        cc_actuator_t *actuator;
-        actuator = cc.newActuator(&softbutton_actuator_config[i]);
-        cc.addActuator(device, actuator);
+        // TODO
     }
 
     // configure poti actuator
-    cc_actuator_config_t poti_actuator_config[NUMBER_OF_BUTTONS];
     for (int i = 0; i < NUMBER_OF_POTIS; i++) {
-        String name = "potentiometer ";
-        name.concat(i);
-        poti_actuator_config[i].type = CC_ACTUATOR_CONTINUOUS;
-        poti_actuator_config[i].name = name.c_str();
-        poti_actuator_config[i].value = &value_potis[i];
-        poti_actuator_config[i].min = ANALOG_IN_MIN_VALUE;
-        poti_actuator_config[i].max = ANALOG_IN_MAX_VALUE;
-        poti_actuator_config[i].supported_modes = CC_MODE_REAL | CC_MODE_INTEGER;
-        poti_actuator_config[i].max_assignments = 1;
-
-        // create and add actuator to device
-        cc_actuator_t *actuator;
-        actuator = cc.newActuator(&poti_actuator_config[i]);
-        cc.addActuator(device, actuator);
+        // TODO
     }
 }
 #pragma clang diagnostic pop
